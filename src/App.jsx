@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Pagination from '@mui/material/Pagination';
 import './App.css'
+import axios from 'axios';
+import CountryTable from './components/CountryTable'
 
 function App() {
   const [countries, setCountries] = useState([]);
@@ -14,18 +16,41 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try{
+        const response = await axios.get('https://restcountries.com/v3.1/all');
+        const totalitems = response.data.length;
+
+        const numberOfPages = calculatePages(totalItems);
+        setNumPages(numberOfPages);
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+        const countriesForPage = response.data.slice(startIndex, endIndex);
+        setCountries(countriesForPage);
+
 
       } catch (error) {
         console.error("Error is", error)
       }
     }
-  })
+    fetchData();
+  }, [])
+
+  const calculatePages = (totalItems) => {
+    Math.ceil(totalItems / itemsPerPage)
+    
+  }
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  }
 
   return (
     <div>
       <h3>Countries Database</h3>
+      <CountryTable/>
       <div>
-        <Pagination count = {numPages} page={currentPage}/>
+        <Pagination onChange={handlePageChange} count={numPages} page={currentPage}/>
       </div>
 
     </div>
